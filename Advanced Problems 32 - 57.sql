@@ -190,7 +190,7 @@ Which salespeople have the most orders arriving late?
 
 
 /*
-43. Late orders vs. total orders
+43 - 45. Late orders vs. total orders
 Andrew, the VP of sales, has been doing some more thinking some more
 about the problem of late orders. He realizes that just looking at the
 number of orders arriving late for each salesperson isn't a good idea. It
@@ -233,10 +233,45 @@ Show all orders and late orders of Employees
 	Order by AllOrders.AllOrders Desc;
 		
 
+
 /*
-
+46 - 47. Late orders vs. total orders - percentage
+Now we want to get the percentage of late orders over total orders.
 */
-
+	With AllOrders as	-- All orders
+		(Select 
+			Orders.EmployeeID			'EmployeeID'
+			,Employees.FirstName		'FirstName'
+			,Employees.LastName			'LastName'
+			,Count(Orders.EmployeeID)	'AllOrders'
+		From 
+			Orders
+			Join Employees
+			On Orders.EmployeeID = Employees.EmployeeID 
+		Group by Orders.EmployeeID, Employees.FirstName, Employees.LastName)
+	,LateOrders as		-- Late orders
+		(Select 
+			Orders.EmployeeID		'EmployeeID'
+			,Count(OrderID)			'LateOrders'	
+		From 
+			Orders
+			Join Employees
+			On Orders.EmployeeID = Employees.EmployeeID 
+		Where RequiredDate <= ShippedDate
+		Group by Orders.EmployeeID, Employees.FirstName, Employees.LastName)
+		--Having Count(OrderID) >= 3)
+	Select				-- Result
+		AllOrders.EmployeeID		'Employee ID'
+		,AllOrders.FirstName		'First Name'
+		,AllOrders.LastName			'Last Name'
+		,AllOrders.AllOrders		'All Orders'
+		,LateOrders.LateOrders		'Late Orders'
+		,Cast(100.0*LateOrders.LateOrders/AllOrders.AllOrders as Decimal(10,1))	'Late/All percentage'	-- use 100.00 to cast to real
+	From
+		AllOrders
+		Join LateOrders
+		On AllOrders.EmployeeID = LateOrders.EmployeeID
+	Order by AllOrders.AllOrders Desc;
 /*
 
 */
